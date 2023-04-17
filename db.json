@@ -16,5 +16,23 @@
       "id": 4,
       "title": "Post 4"
     }
+  ],
+  "todos": [
+    {
+      "id": 1,
+      "content": "Walk dog"
+    },
+    {
+      "id": 2,
+      "content": "Feed squirrel"
+    },
+    {
+      "content": "test",
+      "id": 3
+    },
+    {
+      "content": "test",
+      "id": 4
+    }
   ]
 }
