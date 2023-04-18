@@ -1,36 +1,67 @@
 import React, { useRef } from "react";
 import { Link, Outlet } from "react-router-dom";
-import useSWR from "swr";
-import { fetchTodos, addTodo } from "./todo-apis";
+import useSWR, { useSWRConfig } from "swr";
+import * as todoApi from "./todo-apis";
 import todoQueryKeys from "./todo-keys";
+import { toast } from "react-toastify";
 
 function Home() {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { data, isLoading, isValidating, mutate } = useSWR(
-    todoQueryKeys.all,
-    () => fetchTodos()
-  );
+  const {
+    data: todos,
+    isLoading,
+    isValidating,
+    mutate,
+  } = useSWR(todoQueryKeys.all, () => todoApi.fetchTodos(), {
+    onSuccess: () => {
+      toast("Todos fetched successfully", { autoClose: 1000 });
+    },
+    // DEMO: set to true and restart server with new data
+    revalidateOnFocus: false,
+  });
 
-  if (isLoading) {
-    return <p>Loading todos...</p>;
-  }
+  const { mutate: mutateUnbounded } = useSWRConfig();
 
-  if (data?.length === 0 || data === undefined) {
-    return <p>No todos... </p>;
-  }
-
-  function addTodoHandler() {
+  function addTodoMutateBounded() {
     const value = inputRef.current?.value;
 
     if (!value) {
       return;
     }
 
-    if (data !== undefined) {
-      mutate([...data, { id: Math.random(), content: value }]);
+    if (todos !== undefined) {
+      /** bounded mutate function, with optimistic update and error rollback */
+      mutate([...todos, { id: `${Math.random()}`, content: value }], {
+        rollbackOnError(error: any) {
+          return error.name !== "AbortError";
+        },
+      });
     }
 
-    addTodo(value);
+    todoApi.addTodo(value);
+  }
+
+  function addTodoUnbounded() {
+    const value: string | undefined = inputRef.current?.value;
+
+    if (!value) {
+      return;
+    }
+
+    if (todos !== undefined) {
+      /** unbounded mutate function, with optimistic update and error rollback */
+      mutateUnbounded(todoQueryKeys.all, () => todoApi.addTodo(value), {
+        rollbackOnError: true,
+        optimisticData: (currentData: any) => [
+          ...currentData,
+          { id: `${Math.random()}`, content: value },
+        ],
+        populateCache: (data) => {
+          [...todos, data];
+        },
+        revalidate: true,
+      });
+    }
   }
 
   return (
@@ -39,16 +70,27 @@ function Home() {
 
       <div>
         <input type="text" ref={inputRef} />
-        <button onClick={addTodoHandler}>Add new item</button>
+        <button onClick={addTodoUnbounded}>Add new item</button>
       </div>
 
-      {data.map((todo) => (
-        <li key={todo.id}>
-          <p>ID: {todo.id}</p>
-          {todo.content} <Link to={`edit/${todo.id}`}>Edit</Link>
-          <button>DELETE</button>
-        </li>
-      ))}
+      <ul style={{ listStyle: "none" }}>
+        {isLoading && <p> Fetching todos... </p>}
+        {(todos?.length !== 0 || todos !== undefined) &&
+          !isLoading &&
+          todos.map((todo) => (
+            <li
+              style={{ display: "flex", alignItems: "baseline" }}
+              key={todo.id}
+            >
+              <p style={{ marginRight: "1rem" }}>ID: {todo.id}</p>
+              <p style={{ marginRight: "1rem" }}> {todo.content} </p>
+              <Link to={`edit/${todo.id}`} style={{ marginRight: "1rem" }}>
+                Edit
+              </Link>
+              <button>DELETE</button>
+            </li>
+          ))}
+      </ul>
     </>
   );
 }

@@ -7,6 +7,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import EditTodo from "./swr-pages/EditTodo";
 import SWRHome from "./swr-pages/Home";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +33,13 @@ export default function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+      <ToastContainer
+        className="bean"
+        position={"bottom-right"}
+        newestOnTop={true}
+        draggable={false}
+        pauseOnHover
+      />
     </QueryClientProvider>
   );
 }

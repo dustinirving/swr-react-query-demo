@@ -3,18 +3,18 @@ const server = jsonServer.create();
 const router = jsonServer.router("./db.json");
 const middlewares = jsonServer.defaults();
 
-const serverDelay = 1000;
+const serverDelay = 600;
 
-const todos = [
+let todos = [
   {
-    id: 0,
+    id: "0",
     content: "Walk dog",
   },
   {
-    id: 1,
+    id: "1",
     content: "Feed squirrel",
   },
-//   { id: 3, content: "test" },
+  //   { id: 3, content: "test" },
 ];
 
 server.use(middlewares);
@@ -26,15 +26,50 @@ server.get("/todos", (req, res) => {
   }, serverDelay);
 });
 
-server.post("/todos", (req, res) => {
-  todos.push({
-    id: todos.length,
-    content: req.body.content,
-  });
+server.get("/todos/:id", (req, res) => {
+  const { id } = req.params;
+  setTimeout(() => {
+    const targetTodo = todos.find((todo) => todo.id === id);
+    res.status(200).jsonp(targetTodo);
+  }, serverDelay);
+});
+
+server.patch("/todos/:id", (req, res) => {
+  const { id } = req.params;
+  const { newName } = req.body;
 
   setTimeout(() => {
-    console.log("todos: ", todos);
-    res.status(200).jsonp(todos[todos.length - 1]);
+    todos = todos.map((todo) => {
+      if (todo.id === id) {
+        return { ...todo, content: newName };
+      }
+
+      return todo;
+    });
+    
+    const targetTodo = todos.find((todo) => todo.id === id);
+
+    console.log('target todo: ', targetTodo)
+    if (!targetTodo) {
+      res.status(404).send();
+      return;
+    }
+
+    res.status(200).jsonp(todos.find((todo) => todo.id === id));
+  }, serverDelay);
+});
+
+server.post("/todos", (req, res) => {
+  setTimeout(() => {
+    if (Math.random() > 0.05) {
+      todos.push({
+        id: todos.length,
+        content: req.body.content,
+      });
+      res.status(200).jsonp(todos[todos.length - 1]);
+    } else {
+      res.status(500).jsonp("internal server error");
+    }
   }, serverDelay);
 });
 
