@@ -11,6 +11,7 @@ function Home() {
     data: todos,
     isLoading,
     isValidating,
+    error,
     mutate,
   } = useSWR(todoQueryKeys.all, () => todoApi.fetchTodos(), {
     onSuccess: () => {
@@ -51,17 +52,29 @@ function Home() {
     if (todos !== undefined) {
       /** unbounded mutate function, with optimistic update and error rollback */
       mutateUnbounded(todoQueryKeys.all, () => todoApi.addTodo(value), {
-        rollbackOnError: true,
+        rollbackOnError: (error: any) => {
+          toast("Error while adding todo");
+          return true;
+        },
         optimisticData: (currentData: any) => [
           ...currentData,
           { id: `${Math.random()}`, content: value },
         ],
         populateCache: (data) => {
-          [...todos, data];
+          return [...todos, data];
         },
-        revalidate: true,
+        revalidate: false,
       });
     }
+  }
+
+  if (error) {
+    // DEMO: stop server
+    return (
+      <p style={{ color: "red", fontSize: "2rem" }}>
+        Error while fetching todos.
+      </p>
+    );
   }
 
   return (
@@ -75,8 +88,9 @@ function Home() {
 
       <ul style={{ listStyle: "none" }}>
         {isLoading && <p> Fetching todos... </p>}
-        {(todos?.length !== 0 || todos !== undefined) &&
-          !isLoading &&
+        {!isLoading &&
+          todos?.length !== 0 &&
+          todos !== undefined &&
           todos.map((todo) => (
             <li
               style={{ display: "flex", alignItems: "baseline" }}
@@ -87,7 +101,7 @@ function Home() {
               <Link to={`edit/${todo.id}`} style={{ marginRight: "1rem" }}>
                 Edit
               </Link>
-              <button>DELETE</button>
+              {/* <button>DELETE</button> */}
             </li>
           ))}
       </ul>

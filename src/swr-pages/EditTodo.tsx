@@ -42,10 +42,13 @@ function EditTodo() {
       }),
       populateCache: true,
       rollbackOnError: (error: any) => {
+        if (inputRef.current) {
+          inputRef.current.value = todo?.content ?? "";
+        }
         toast("Error while updating todo", { autoClose: 1000 });
         return true;
       },
-      revalidate: true,
+      revalidate: false,
     });
   }
 

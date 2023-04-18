@@ -39,6 +39,11 @@ server.patch("/todos/:id", (req, res) => {
   const { newName } = req.body;
 
   setTimeout(() => {
+    if (Math.random() > 0.5) {
+      res.status(500).send();
+      return;
+    }
+    
     todos = todos.map((todo) => {
       if (todo.id === id) {
         return { ...todo, content: newName };
@@ -49,7 +54,6 @@ server.patch("/todos/:id", (req, res) => {
     
     const targetTodo = todos.find((todo) => todo.id === id);
 
-    console.log('target todo: ', targetTodo)
     if (!targetTodo) {
       res.status(404).send();
       return;
