@@ -67,7 +67,7 @@ server.post("/todos", (req, res) => {
   setTimeout(() => {
     if (Math.random() > 0.05) {
       todos.push({
-        id: todos.length,
+        id: `${todos.length}`,
         content: req.body.content,
       });
       res.status(200).jsonp(todos[todos.length - 1]);

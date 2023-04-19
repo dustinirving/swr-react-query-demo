@@ -23,24 +23,24 @@ function Home() {
 
   const { mutate: mutateUnbounded } = useSWRConfig();
 
-  function addTodoMutateBounded() {
-    const value = inputRef.current?.value;
+  // function addTodoMutateBounded() {
+  //   const value = inputRef.current?.value;
 
-    if (!value) {
-      return;
-    }
+  //   if (!value) {
+  //     return;
+  //   }
 
-    if (todos !== undefined) {
-      /** bounded mutate function, with optimistic update and error rollback */
-      mutate([...todos, { id: `${Math.random()}`, content: value }], {
-        rollbackOnError(error: any) {
-          return error.name !== "AbortError";
-        },
-      });
-    }
+  //   if (todos !== undefined) {
+  //     /** bounded mutate function, with optimistic update and error rollback */
+  //     mutate([...todos, { id: `${Math.random()}`, content: value }], {
+  //       rollbackOnError(error: any) {
+  //         return error.name !== "AbortError";
+  //       },
+  //     });
+  //   }
 
-    todoApi.addTodo(value);
-  }
+  //   todoApi.addTodo(value);
+  // }
 
   function addTodoUnbounded() {
     const value: string | undefined = inputRef.current?.value;
@@ -88,10 +88,9 @@ function Home() {
 
       <ul style={{ listStyle: "none" }}>
         {isLoading && <p> Fetching todos... </p>}
+        {isValidating && <p> Revalidating todos.... </p>}
         {!isLoading &&
-          todos?.length !== 0 &&
-          todos !== undefined &&
-          todos.map((todo) => (
+          todos?.map((todo) => (
             <li
               style={{ display: "flex", alignItems: "baseline" }}
               key={todo.id}
@@ -101,7 +100,6 @@ function Home() {
               <Link to={`edit/${todo.id}`} style={{ marginRight: "1rem" }}>
                 Edit
               </Link>
-              {/* <button>DELETE</button> */}
             </li>
           ))}
       </ul>
