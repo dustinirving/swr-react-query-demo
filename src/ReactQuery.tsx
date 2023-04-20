@@ -27,25 +27,31 @@ export default function ReactQuery() {
   const {
     isLoading,
     error,
+    isError,
     data: posts,
   } = useQuery({
     queryKey: [postsKey],
     queryFn: fetchPosts,
-    // refetchInterval: 3000,
+    // staleTime: 3000, // Time before the data becomes stale
+    // refetchOnMount: false,
+    // refetchOnWindowFocus: false,
+    // refetchOnReconnect: false,
+    // refetchInterval: 3000, // Poll API
+    // retry: 10, // Will retry failed requests 10 times before displaying an error
   });
 
   const mutation = useMutation({
     mutationFn: addPost,
     onSuccess: () => {
       // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: [postsKey] });
+      // queryClient.invalidateQueries({ queryKey: [postsKey] });
     },
   });
   return (
     <div>
       <h1>React Query</h1>
-      <Posts posts={posts} loading={isLoading} />
-      <button onClick={() => mutation.mutate(`Post ${posts.length + 1}`)}>Refetch posts</button>
+      <Posts posts={posts} loading={isLoading} error={error} isError={isError} />
+      <button onClick={() => mutation.mutate(`Post ${posts.length + 1}`)}>Create Post</button>
     </div>
   );
 }
